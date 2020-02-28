@@ -1,7 +1,10 @@
 package com.github.jonyas.add_to_calendar
 
 import android.app.Activity
+import android.content.ContentProvider
+import android.content.ContentValues
 import android.content.Intent
+import android.net.Uri
 import android.provider.CalendarContract
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
@@ -41,8 +44,32 @@ class AddToCalendarPlugin(private val activity: Activity) : MethodCallHandler {
         if (isAllDay != null) putExtra(CalendarContract.EXTRA_EVENT_ALL_DAY, isAllDay)
       }
 
+      val calID: Long = 3
+      val startMillis: Long = Calendar.getInstance().run {
+        set(2020, 3, 1, 7, 30)
+        timeInMillis
+      }
+      val endMillis: Long = Calendar.getInstance().run {
+        set(2020, 3, 1, 8, 45)
+        timeInMillis
+      }
+
+      val values = ContentValues().apply {
+        put(CalendarContract.Events.DTSTART, startMillis)
+        put(CalendarContract.Events.DTEND, endMillis)
+        put(CalendarContract.Events.TITLE, "Jazzercise")
+        put(CalendarContract.Events.DESCRIPTION, "Group workout")
+        put(CalendarContract.Events.CALENDAR_ID, calID)
+        put(CalendarContract.Events.EVENT_TIMEZONE, "America/Los_Angeles")
+      }
+      val uri: Uri = contentResolver.insert(CalendarContract.Events.CONTENT_URI, values)
+
+// get the event ID that is the last element in the Uri
+      val eventID: Long = uri.lastPathSegment.toLong()
+
       activity.startActivity(intent)
       result.success(true)
+
     } else {
       result.notImplemented()
     }
